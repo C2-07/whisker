@@ -61,7 +61,7 @@ func Mute(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Parse duration
 	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
-		helpers.IntRespondEph(s, i,  "Invalid duration format. Use like: 5m, 1h, 2h30m")
+		helpers.IntRespondEph(s, i, "Invalid duration format. Use like: 5m, 1h, 2h30m")
 		return
 	}
 
