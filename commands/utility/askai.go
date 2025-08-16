@@ -10,9 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// Slash command definition
 var DefineMagicalAI = &discordgo.ApplicationCommand{
-	Name:        "magicalcat",
+	Name:        "magical",
 	Description: "Ask the Magical Cat anything!",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
@@ -29,7 +28,6 @@ var DefineMagicalAI = &discordgo.ApplicationCommand{
 	},
 }
 
-// Minimal message struct
 type Message struct {
 	Author   string
 	AuthorID string
@@ -49,6 +47,10 @@ func MagicalAI(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
+	if query == "" {
+		helpers.IntRespondEph(s, i, "You must provide a query.")
+		return
+	}
 	if limit <= 0 {
 		limit = 5
 	}
@@ -60,12 +62,28 @@ func MagicalAI(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	prompt := fmt.Sprintf(
-		"history = %v\n\nYou're given the last %v messages from a Discord channel. Your job is to answer the query \"%v\" by \"%v\" within 1800 words",
-		history, limit, query, i.User.Username,
-	)
+	// Safe username extraction
+	var username string
+	if i.User != nil {
+		username = i.User.Username
+	} else if i.Member != nil && i.Member.User != nil {
+		username = i.Member.User.Username
+	} else {
+		username = "unknown"
+	}
 
-	log.Println(prompt)
+	// Build prompt
+	wantLong := helpers.DecideLength(query)
+
+	// Convert history to simple strings for context
+	histText := make([]string, len(history))
+	for idx, h := range history {
+		histText[idx] = fmt.Sprintf("%s: %s", h.Author, h.Content)
+	}
+
+	prompt := helpers.FormatPrompt(query, username, histText, wantLong)
+
+	// Ask AI
 	ctx := context.Background()
 	resp, err := helpers.GenerateContent(ctx, prompt)
 	if err != nil {
@@ -73,10 +91,22 @@ func MagicalAI(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		log.Print(err)
 		return
 	}
-	helpers.IntRespond(s, i, resp)
+
+	// Discord length cap
+	if len(resp) > 1800 {
+		resp = resp[:1790] + "…"
+	}
+	if resp == "" {
+		helpers.IntRespondEph(s, i, "No response was generated.")
+		return
+	}
+
+	err = helpers.IntRespond(s, i, resp)
+	if err != nil {
+		log.Printf("Error sending response: %v", err)
+	}
 }
 
-// Fetch N most recent messages
 func getRecentMessages(s *discordgo.Session, ic *discordgo.InteractionCreate, n int) ([]Message, error) {
 	msgs, err := s.ChannelMessages(ic.ChannelID, n, "", "", "")
 	if err != nil {
@@ -85,6 +115,9 @@ func getRecentMessages(s *discordgo.Session, ic *discordgo.InteractionCreate, n 
 
 	history := make([]Message, len(msgs))
 	for i, m := range msgs {
+		if m.Author == nil {
+			continue
+		}
 		history[i] = Message{
 			Author:   m.Author.Username,
 			AuthorID: m.Author.ID,
