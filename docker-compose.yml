@@ -7,8 +7,8 @@ services:
       - .:/app # Mount local source into container
     environment:
       DATABASE_URL: "postgres://botuser:botpassword@db:5432/botdb?sslmode=disable"
-      DISCORD_TOKEN: "MTI0NjgzOTY0MDYzMjMyODM5Mw.GQ6Hu2.CKNIDVV6_lYV2cBTo22pszpZVKw_bwyoqfbzls"
-      GEMINI_API_KEY: "AIzaSyBmUK7NZtxMPSJlPeAIFgeSo46l-d-S2Ig"
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       db:
         condition: service_healthy
