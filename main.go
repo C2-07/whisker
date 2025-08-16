@@ -54,7 +54,7 @@ func main() {
 		DB: dbpool,
 	}
 
-	GuildID := "1402745840220635187"
+	GuildID := "1320394789459464203"
 
 	if *BotToken == "" {
 		*BotToken = os.Getenv("DISCORD_TOKEN")
@@ -89,15 +89,16 @@ func main() {
 	defer client.Close()
 
 	// Register commands
+	var commands []*discordgo.ApplicationCommand
 	var commandCounter uint16 = 0
 	for _, v := range commandDefs {
-		_, err := client.ApplicationCommandCreate(client.State.User.ID, GuildID, v)
-		if err != nil {
-			log.Fatalf("Error creating command '%s': %v", v.Name, err)
-		}
+		commands = append(commands, v)
+		log.Printf("Registerd command %s", v.Name)
 		commandCounter += 1
 	}
 	fmt.Printf("Registered %d commands.\n", commandCounter)
+
+	client.ApplicationCommandBulkOverwrite(client.State.User.ID, GuildID, commands)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

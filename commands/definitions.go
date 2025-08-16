@@ -27,6 +27,10 @@ var commandRegistry = []Command{
 	},
 	// Utility
 	{
+		Definition: utility.DefineMagicalAI,
+		Handler:    utility.MagicalAI,
+	},
+	{
 		Definition: utility.DefineUrban,
 		Handler:    utility.Urbandictionary,
 	},
@@ -38,10 +42,14 @@ var commandRegistry = []Command{
 		Definition: utility.DefineBanner,
 		Handler:    utility.Banner,
 	},
-	{
-		Definition: utility.DefineXP,
-		Handler:    utility.XP,
-	},
+	// {
+	// 	Definition: utility.DefineImageManipulation,
+	// 	Handler:    utility.ImageManipulation,
+	// },
+	// {
+	// 	Definition: utility.DefineXP,
+	// 	Handler:    utility.XP,
+	// },
 	// Moderation
 	{
 		Definition: moderation.DefineKick,

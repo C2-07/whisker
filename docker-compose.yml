@@ -1,7 +1,10 @@
 services:
   bot:
-    build: .
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app # Mount local source into container
     environment:
       DATABASE_URL: "postgres://botuser:botpassword@db:5432/botdb?sslmode=disable"
       DISCORD_TOKEN: ${DISCORD_TOKEN}
